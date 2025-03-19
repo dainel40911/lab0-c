@@ -4,14 +4,31 @@
 
 #include "queue.h"
 
+typedef struct list_head list_head;
 /* Create an empty queue */
 struct list_head *q_new()
 {
-    return NULL;
+    list_head *head = (list_head *) malloc(sizeof(list_head));
+    if (list_empty(head)) {
+        return NULL;
+    }
+    INIT_LIST_HEAD(head);
+    return head;
 }
 
 /* Free all storage used by queue */
-void q_free(struct list_head *head) {}
+void q_free(struct list_head *head)
+{
+    if (!head)
+        return;
+
+    element_t *item, *safe;
+    list_for_each_entry_safe(item, safe, head, list) {
+        list_del(&item->list);
+        q_release_element(item);
+    }
+    free(head);
+}
 
 /* Insert an element at head of queue */
 bool q_insert_head(struct list_head *head, char *s)
@@ -40,12 +57,13 @@ element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
 /* Return number of elements in queue */
 int q_size(struct list_head *head)
 {
-    if (!head) return 0;
+    if (!head)
+        return 0;
 
     int len = 0;
     struct list_head *li;
 
-    list_for_each (li, head)
+    list_for_each(li, head)
         len++;
     return len;
 }
